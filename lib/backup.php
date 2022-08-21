@@ -12,7 +12,7 @@
  * @author
  * @create
  * Copyright (C)
- *   2002-2016 PukiWiki Development Team
+ *   2002-2022 PukiWiki Development Team
  *   2001-2002 Originally written by yu-ji
  * License: GPL v2 or (at your option) any later version
  **/
@@ -33,6 +33,7 @@ function make_backup($page, $is_delete, $wikitext)
 	global $cycle, $maxage;
 	global $do_backup, $del_backup;
 	global $auth_user;
+	global $database;
 
 	if (PKWK_READONLY || ! $do_backup) return;
 
@@ -84,6 +85,10 @@ function make_backup($page, $is_delete, $wikitext)
 			$body_on_delete = PKWK_SPLITTER . ' ' . UTIME . "\n" . $wikitext;
 			$body_on_delete = preg_replace("/\n*$/", "\n", $body_on_delete);
 		}
+		if ($database) {
+			db_page_write(BACKUP_DB, $page, $strout . $body . $body_on_delete);
+			return;
+		}
 		$fp = _backup_fopen($page, 'wb')
 			or die_message('Cannot open ' . htmlsc(_backup_get_filename($page)) .
 			'<br />Maybe permission is not writable or filename is too long');
@@ -109,7 +114,15 @@ function make_backup($page, $is_delete, $wikitext)
  */
 function get_backup($page, $age = 0)
 {
-	$lines = _backup_file($page);
+	global $database;
+	if ($database && exist_db_page(BACKUP_DB, $page)) {
+		$r = db_read(BACKUP_DB, "content", "page_name", $page)['content'];
+		preg_match_all("/.*?(?:$|\n).*?/", $r, $lines);
+		$lines = $lines[0];
+	} else {
+		$lines = _backup_file($page);
+	}
+	
 	if (! is_array($lines)) return array();
 
 	$_age = 0;
@@ -164,6 +177,9 @@ function _backup_get_filename($page)
  */
 function _backup_file_exists($page)
 {
+	global $database;
+	if ($database && exist_db_page(BACKUP_DB, $page))
+		return true;
 	return file_exists(_backup_get_filename($page));
 }
 
@@ -179,6 +195,11 @@ function _backup_file_exists($page)
 
 function _backup_get_filetime($page)
 {
+	global $database;
+	if ($database && exist_db_page(BACKUP_DB, $page)) {
+		return _backup_file_exists($page) ?
+			db_recordmtime($page, BACKUP_DB) - LOCALZONE : 0;
+	}
 	return _backup_file_exists($page) ?
 		filemtime(_backup_get_filename($page)) - LOCALZONE : 0;
 }
@@ -194,6 +215,10 @@ function _backup_get_filetime($page)
  */
 function _backup_delete($page)
 {
+	global $database;
+	if ($database && exist_db_page(BACKUP_DB, $page)) {
+		db_delete(BACKUP_DB, $page);
+	}
 	return unlink(_backup_get_filename($page));
 }
 

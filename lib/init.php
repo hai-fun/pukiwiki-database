@@ -480,3 +480,8 @@ $line_rules = array_merge(array(
 	'&amp;(#[0-9]+|#x[0-9a-f]+|' . get_html_entity_pattern() . ');' => '&$1;',
 	"\r"          => '<br />' . "\n",	/* 行末にチルダは改行 */
 ), $line_rules);
+
+// データベース初期セットアップ
+if ($database) {
+	db_init();
+}

@@ -201,6 +201,23 @@ $adminpass = '{x-php-md5}!';
 //$adminpass = '{SHA256}10/w7o2juYBrGMh32/KbveULW9jk2tejpyUAD+uC6PE=' // LDAP SHA256 'pass'
 
 /////////////////////////////////////////////////
+// Wiki data database setting
+$database = 1;
+
+// Data Source Name
+//$database_dsn = 'mysql:dbname=pukiwiki;host=127.0.0.1';
+$database_dsn = 'sqlite:' . DATA_DIR . 'pukiwiki.db';
+
+$database_username = 'admin';
+$database_password = 'pass';
+$database_prefix = '';
+$database_timeout = 30;
+$database_page_name_max_length = 190;
+$database_options = array(
+	//PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_bin"
+);
+
+/////////////////////////////////////////////////
 // Page-reading feature settings
 // (Automatically creating pronounce datas, for Kanji-included page names,
 //  to show sorted page-list correctly)

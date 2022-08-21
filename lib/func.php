@@ -145,7 +145,11 @@ function is_url($str, $only_http = FALSE)
 // If the page exists
 function is_page($page, $clearcache = FALSE)
 {
+	global $database;
 	if ($clearcache) clearstatcache();
+	if ($database && exist_db_page(DATA_DB, $page)) {
+		return true;
+	}
 	return file_exists(get_filename($page));
 }
 
@@ -161,7 +165,12 @@ function is_pagename_bytes_within_hard_limit($page)
 
 function page_exists_in_history($page)
 {
+	global $database;
+
 	if (is_page($page)) {
+		return true;
+	}
+	if ($database && exist_db_page(DIFF_DB, $page)) {
 		return true;
 	}
 	$diff_file = DIFF_DIR . encode($page) . '.txt';
@@ -194,6 +203,7 @@ function is_editable($page)
 function is_freeze($page, $clearcache = FALSE)
 {
 	global $function_freeze;
+	global $database;
 	static $is_freeze = array();
 
 	if ($clearcache === TRUE) $is_freeze = array();
@@ -203,6 +213,11 @@ function is_freeze($page, $clearcache = FALSE)
 		$is_freeze[$page] = FALSE;
 		return FALSE;
 	} else {
+		if ($database && exist_db_page(DATA_DB, $page)) {
+			$r = db_read(DATA_DB, "content", "page_name", $page);
+			$is_freeze[$page] = (bool) preg_match('/^#freeze$/m', $r['content']);
+			return $is_freeze[$page];
+		}
 		$fp = fopen(get_filename($page), 'rb') or
 			die('is_freeze(): fopen() failed: ' . htmlsc($page));
 		flock($fp, LOCK_SH) or die('is_freeze(): flock() failed');
@@ -1308,3 +1323,4 @@ if (! function_exists('sha1')) {
 		}
 	}
 }
+

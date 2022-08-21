@@ -2,7 +2,7 @@
 // PukiWiki - Yet another WikiWikiWeb clone
 // dump.inc.php
 // Copyright
-//   2004-2021 PukiWiki Development Team
+//   2004-2022 PukiWiki Development Team
 //   2004      teanan / Interfair Laboratory
 // License: GPL v2 or (at your option) any later version
 //
@@ -98,6 +98,7 @@ function plugin_dump_action()
 // ファイルのダウンロード
 function plugin_dump_download()
 {
+	global $database;
 	global $vars, $_STORAGE;
 
 	// アーカイブの種類
@@ -116,9 +117,24 @@ function plugin_dump_download()
 	$tar->create(CACHE_DIR, $arc_kind) or
 		die_message('テンポラリファイルの生成に失敗しました。');
 
-	if ($bk_wiki)   $filecount += $tar->add_dir(DATA_DIR,   $_STORAGE['DATA_DIR']['add_filter'],   $namedecode);
+	if ($database) {
+		
+		// データベース
+		if ($bk_wiki) {
+			db_output(DATA_DB, CACHE_DIR . "db_dump/");
+			$filecount += $tar->add_dir(DATA_DIR,   $_STORAGE['DATA_DIR']['add_filter'],   $namedecode);
+		}
+		if ($bk_backup) {
+			db_output(BACKUP_DB, CACHE_DIR . "db_dump/");
+			$filecount += $tar->add_dir(BACKUP_DIR,   $_STORAGE['BACKUP_DIR']['add_filter'],   $namedecode);
+		}
+	} else {
+
+		// テキストファイル
+		if ($bk_wiki)   $filecount += $tar->add_dir(DATA_DIR,   $_STORAGE['DATA_DIR']['add_filter'],   $namedecode);
+		if ($bk_backup) $filecount += $tar->add_dir(BACKUP_DIR, $_STORAGE['BACKUP_DIR']['add_filter'], $namedecode);
+	}
 	if ($bk_attach) $filecount += $tar->add_dir(UPLOAD_DIR, $_STORAGE['UPLOAD_DIR']['add_filter'], $namedecode);
-	if ($bk_backup) $filecount += $tar->add_dir(BACKUP_DIR, $_STORAGE['BACKUP_DIR']['add_filter'], $namedecode);
 
 	$tar->close();
 
@@ -129,6 +145,7 @@ function plugin_dump_download()
 		// ダウンロード
 		download_tarfile($tar->filename, $arc_kind);
 		@unlink($tar->filename);
+		pkwk_remove_dir(CACHE_DIR . "db_dump/");
 		exit;	// 正常終了
 	}
 }
@@ -138,6 +155,7 @@ function plugin_dump_download()
 function plugin_dump_upload()
 {
 	global $vars, $_STORAGE;
+	global $database;
 
 	if (! PLUGIN_DUMP_ALLOW_RESTORE)
 		return array('code' => FALSE , 'msg' => 'Restoring function is not allowed');
@@ -185,6 +203,14 @@ function plugin_dump_upload()
 
 	$tar->close();
 	@unlink($uploadfile);
+
+	if ($database) {
+		foreach ($files as $file) {
+			$page = decode(pathinfo(basename($file), PATHINFO_FILENAME));
+			db_page_write(dir2db(dirname($file) . '/'), $page, file_get_contents($file));
+			unlink($file);
+		}
+	}
 
 	return array('code' => TRUE, 'msg' => $msg);
 }

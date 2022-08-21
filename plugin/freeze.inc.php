@@ -1,7 +1,7 @@
 <?php
 // PukiWiki - Yet another WikiWikiWeb clone.
 // freeze.inc.php
-// Copyright 2003-2017 PukiWiki Development Team
+// Copyright 2003-2022 PukiWiki Development Team
 // License: GPL v2 or (at your option) any later version
 //
 // Freeze(Lock) plugin
@@ -14,6 +14,7 @@ function plugin_freeze_action()
 	global $vars, $function_freeze;
 	global $_title_isfreezed, $_title_freezed, $_title_freeze;
 	global $_msg_invalidpass, $_msg_freezing, $_btn_freeze;
+	global $database;
 
 	$script = get_base_uri();
 	$page = isset($vars['page']) ? $vars['page'] : '';
@@ -32,14 +33,18 @@ function plugin_freeze_action()
 		// Freeze
 		$postdata = get_source($page);
 		array_unshift($postdata, "#freeze\n");
-		file_write(DATA_DIR, $page, join('', $postdata), TRUE);
+		if ($database && exist_db_page(DATA_DB, $page)) {
+			db_page_write(DATA_DB, $page, join('', $postdata), TRUE);
+		} else {
+			file_write(DATA_DIR, $page, join('', $postdata), TRUE);
+		}
 
 		// Update
 		is_freeze($page, TRUE);
 		$vars['cmd'] = 'read';
 		$msg  = & $_title_freezed;
 		$body = '';
-
+		
 	} else {
 		// Show a freeze form
 		$msg    = & $_title_freeze;

@@ -1,7 +1,7 @@
 <?php
 // PukiWiki - Yet another WikiWikiWeb clone.
 // unfreeze.inc.php
-// Copyright 2003-2017 PukiWiki Development Team
+// Copyright 2003-2022 PukiWiki Development Team
 // License: GPL v2 or (at your option) any later version
 //
 // Unfreeze(Unlock) plugin
@@ -14,6 +14,7 @@ function plugin_unfreeze_action()
 	global $vars, $function_freeze;
 	global $_title_isunfreezed, $_title_unfreezed, $_title_unfreeze;
 	global $_msg_invalidpass, $_msg_unfreezing, $_btn_unfreeze;
+	global $database;
 
 	$script = get_base_uri();
 	$page = isset($vars['page']) ? $vars['page'] : '';
@@ -37,7 +38,11 @@ function plugin_unfreeze_action()
 			}
 		}
 		$postdata = join('', $postdata);
-		file_write(DATA_DIR, $page, $postdata, TRUE);
+		if ($database && exist_db_page(DATA_DB, $page)) {
+			db_page_write(DATA_DB, $page, $postdata, TRUE);
+		} else {
+			file_write(DATA_DIR, $page, $postdata, TRUE);
+		}
 
 		// Update 
 		is_freeze($page, TRUE);

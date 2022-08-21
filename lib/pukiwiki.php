@@ -2,7 +2,7 @@
 // PukiWiki - Yet another WikiWikiWeb clone.
 // pukiwiki.php
 // Copyright
-//   2002-2016 PukiWiki Development Team
+//   2002-2022 PukiWiki Development Team
 //   2001-2002 Originally written by yu-ji
 // License: GPL v2 or (at your option) any later version
 //
@@ -17,6 +17,7 @@ if (! defined('LIB_DIR')) define('LIB_DIR', '');
 
 require(LIB_DIR . 'func.php');
 require(LIB_DIR . 'file.php');
+require(LIB_DIR . 'database.php');
 require(LIB_DIR . 'plugin.php');
 require(LIB_DIR . 'html.php');
 require(LIB_DIR . 'backup.php');

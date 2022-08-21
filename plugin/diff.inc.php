@@ -2,7 +2,7 @@
 // PukiWiki - Yet another WikiWikiWeb clone.
 // diff.inc.php
 // Copyright
-//   2002-2017 PukiWiki Development Team
+//   2002-2022 PukiWiki Development Team
 //   2002      Originally written by yu-ji
 // License: GPL v2 or (at your option) any later version
 //
@@ -17,8 +17,12 @@ function plugin_diff_action()
 
 	$action = isset($vars['action']) ? $vars['action'] : '';
 	switch ($action) {
-		case 'delete': $retval = plugin_diff_delete($page);	break;
-		default:       $retval = plugin_diff_view($page);	break;
+		case 'delete':
+			$retval = plugin_diff_delete($page);
+			break;
+		default:
+			$retval = plugin_diff_view($page);
+			break;
 	}
 	return $retval;
 }
@@ -28,6 +32,7 @@ function plugin_diff_view($page)
 	global $hr;
 	global $_msg_notfound, $_msg_goto, $_msg_deleted, $_msg_addline, $_msg_delline, $_title_diff;
 	global $_title_diff_delete;
+	global $database;
 
 	$script = get_base_uri();
 	$r_page = pagename_urlencode($page);
@@ -47,8 +52,15 @@ function plugin_diff_view($page)
 	}
 
 	$filename = DIFF_DIR . encode($page) . '.txt';
-	if (file_exists($filename)) {
-		if (! PKWK_READONLY) {
+	if ($database && exist_db_page(DIFF_DB, $page)) {
+		if (!PKWK_READONLY) {
+			$menu[] = '<li><a href="' . $script . '?cmd=diff&amp;action=delete&amp;page=' .
+				$r_page . '">' . str_replace('$1', $s_page, $_title_diff_delete) . '</a></li>';
+		}
+		$r = db_read(DIFF_DB, "content", "page_name", $page);
+		$msg = '<pre>' . diff_style_to_css(htmlsc($r['content'])) . '</pre>' . "\n";
+	} else if (file_exists($filename)) {
+		if (!PKWK_READONLY) {
 			$menu[] = '<li><a href="' . $script . '?cmd=diff&amp;action=delete&amp;page=' .
 				$r_page . '">' . str_replace('$1', $s_page, $_title_diff_delete) . '</a></li>';
 		}

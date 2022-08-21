@@ -1,7 +1,7 @@
 <?php
 // PukiWiki - Yet another WikiWikiWeb clone
 // rename.inc.php
-// Copyright 2002-2018 PukiWiki Development Team
+// Copyright 2002-2022 PukiWiki Development Team
 // License: GPL v2 or (at your option) any later version
 //
 // Rename plugin: Rename page-name and related data
@@ -213,10 +213,23 @@ function plugin_rename_regex($arr_from, $arr_to)
 function plugin_rename_phase3($pages)
 {
 	global $_rename_messages;
+	global $database;
 
 	$script = get_base_uri();
 	$msg = $input = '';
+	$records = $exist_records = array();
 	$files = plugin_rename_get_files($pages);
+	if ($database) {
+		$records = plugin_rename_get_records($pages);
+
+		// 既に存在する変更後のページ名を取得
+		foreach ($records as $table=>$arr) {
+			foreach ($arr as $old => $new) {
+				if (exist_db_page($table, $new))
+					$exist_records[$table][$old] = $new;
+			}
+		}
+	}
 
 	$exists = array();
 	foreach ($files as $_page=>$arr)
@@ -226,6 +239,9 @@ function plugin_rename_phase3($pages)
 
 	$pass = plugin_rename_getvar('pass');
 	if ($pass != '' && pkwk_login($pass)) {
+		if ($database) {
+			plugin_rename_db_proceed($pages, $records, $exist_records);
+		}
 		return plugin_rename_proceed($pages, $files, $exists);
 	} else if ($pass != '') {
 		$msg = plugin_rename_err('adminpass');
@@ -326,6 +342,19 @@ function plugin_rename_get_files($pages)
 	return $files;
 }
 
+function plugin_rename_get_records($pages)
+{
+	$records = array();
+	$tables  = array(BACKUP_DB, DIFF_DB, DATA_DB);
+
+	foreach ($tables as $table) {
+		foreach ($pages as $from => $to) {
+			$records[$table][decode($from)] = decode($to);
+		}
+	}
+	return $records;
+}
+
 function plugin_rename_proceed($pages, $files, $exists)
 {
 	global $now, $_rename_messages;
@@ -400,6 +429,29 @@ function plugin_rename_proceed($pages, $files, $exists)
 	exit;
 }
 
+function plugin_rename_db_proceed($pages, $records, $exists)
+{
+	if (plugin_rename_getvar('exist') == '')
+		foreach ($exists as $table => $arr) {
+			foreach ($arr as $old => $new) {
+				unset($pages[$table][$old]);
+			}
+		}
+
+	set_time_limit(0);
+	foreach ($records as $table => $arr) {
+		foreach ($arr as $old => $new) {
+			if (isset($exists[$table][$old]) && $exists[$table][$old])
+				unlink($new);
+			db_rename($table, $old, $new);
+		}
+		// linkデータベースを更新する BugTrack/327 arino
+		links_update($old);
+		links_update($new);
+	}
+	// Next: plugin_rename_proceed
+}
+
 function plugin_rename_getrelated($page)
 {
 	$related = array();
@@ -455,9 +507,19 @@ function plugin_rename_get_existpages() {
  * Return where the page exists or existed
  */
 function plugin_rename_is_page($page) {
+	global $database;
 	$enc = encode($page);
 	if (is_page($page)) {
 		return true;
+	}
+	if ($database) {
+		// DataBase
+		if (exist_db_page(DIFF_DB, $page)) {
+			true;
+		}
+		if (exist_db_page(BACKUP_DB, $page)) {
+			true;
+		}
 	}
 	if (file_exists(DIFF_DIR . $enc . '.txt')) {
 		return true;
