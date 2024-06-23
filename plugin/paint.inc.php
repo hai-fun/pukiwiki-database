@@ -37,6 +37,14 @@ define('PAINT_FORMAT',"\x08MSG\x08 -- \x08NAME\x08 \x08NOW\x08");
 //メッセージがない場合
 define('PAINT_FORMAT_NOMSG',"\x08NAME\x08 \x08NOW\x08");
 
+define('PAINT_FABRIC_JS_CDN', "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js");
+
+function plugin_paint_init() {
+	global $head_tags;
+
+	$head_tags[] = '<script src="' . PAINT_FABRIC_JS_CDN . '"></script>';
+}
+
 function plugin_paint_action()
 {
 	global $vars, $_paint_messages;
