@@ -2,7 +2,7 @@
 // PukiWiki - Yet another WikiWikiWeb clone.
 // en.lng.php
 // Copyright
-//   2002-2022 PukiWiki Development Team
+//   2002-2024 PukiWiki Development Team
 //   2001-2002 Originally written by yu-ji
 // License: GPL v2 or (at your option) any later version
 //
@@ -301,7 +301,22 @@ $_paint_messages = array(
 	'field_name'    => 'Name',
 	'field_filename'=> 'Filename',
 	'field_comment' => 'Comment',
-	'btn_submit'    => 'paint',
+	'btn_pen'       => 'Pen',
+	'btn_eraser'    => 'Eraser',
+	'btn_selectmode'    => 'Select Mode',
+	'btn_drawmode'  => 'Draw Mode',
+	'btn_undo'      => 'Undo',
+	'btn_redo'      => 'Redo',
+	'btn_square'    => 'Square',
+	'btn_circle'    => 'Circle',
+	'btn_text'      => 'Text',
+	'btn_delete'    => 'Delete',
+	'btn_clone'     => 'Clone',
+	'btn_save'      => 'Save',
+	'btn_load'      => 'Load',
+	'btn_clear'     => 'Clear',
+	'btn_insert'    => 'Insert',
+	'btn_submit'    => 'Paint',
 	'msg_max'       => '(Max %d x %d)',
 	'msg_title'     => 'Paint and Attach to  $1',
 	'msg_title_collided' => 'On updating  $1, there was a collision.',

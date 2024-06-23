@@ -2,7 +2,7 @@
 // PukiWiki - Yet another WikiWikiWeb clone.
 // ja.lng.php
 // Copyright
-//   2002-2022 PukiWiki Development Team
+//   2002-2024 PukiWiki Development Team
 //   2001-2002 Originally written by yu-ji
 // License: GPL v2 or (at your option) any later version
 //
@@ -303,7 +303,22 @@ $_paint_messages = array(
 	'field_name'    => 'お名前',
 	'field_filename'=> 'ファイル名',
 	'field_comment' => 'コメント',
-	'btn_submit'    => 'paint',
+	'btn_pen'       => 'ペン',
+	'btn_eraser'    => '消しゴム',
+	'btn_selectmode'=> '選択モード',
+	'btn_drawmode'  => '描画モード',
+	'btn_undo'      => '元に戻す',
+	'btn_redo'      => 'やり直し',
+	'btn_square'    => '四角',
+	'btn_circle'    => '円',
+	'btn_text'      => '文字',
+	'btn_delete'    => '削除',
+	'btn_clone'     => '複製',
+	'btn_save'      => '保存',
+	'btn_load'      => '読込',
+	'btn_clear'     => 'クリア',
+	'btn_insert'    => '挿入',
+	'btn_submit'    => 'ペイント',
 	'msg_max'       => '(最大 %d x %d)',
 	'msg_title'     => 'Paint and Attach to $1',
 	'msg_title_collided' => '$1 で【更新の衝突】が起きました',
