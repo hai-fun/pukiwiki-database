@@ -24,10 +24,6 @@ define('PAINT_DEFAULT_HEIGHT',60);
 define('PAINT_MAX_WIDTH',320);
 define('PAINT_MAX_HEIGHT',240);
 
-// アプレット領域の幅と高さ 50x50未満で別ウインドウが開く
-define('PAINT_APPLET_WIDTH',800);
-define('PAINT_APPLET_HEIGHT',300);
-
 //コメントの挿入フォーマット
 define('PAINT_NAME_FORMAT','[[$name]]');
 define('PAINT_MSG_FORMAT','$msg');
@@ -60,7 +56,7 @@ function plugin_paint_action()
 		and array_key_exists('refer',$vars))
 	{
 		$file = $_FILES['attach_file'];
-		//BBSPaiter.jarは、shift-jisで内容を送ってくる。面倒なのでページ名はエンコードしてから送信させるようにした。
+		// ページ名はエンコードしてから送信させるようにした。
 		$vars['page'] = $vars['refer'] = decode($vars['refer']);
 
 		$filename = $vars['filename'];
@@ -99,26 +95,12 @@ function plugin_paint_action()
 		}
 		$link = "<p><a href=\"$page_uri\">$s_refer</a></p>";;
 
-		$w = PAINT_APPLET_WIDTH;
-		$h = PAINT_APPLET_HEIGHT;
-
-		//ウインドウモード :)
-		if ($w < 50 and $h < 50)
-		{
-			$w = $h = 0;
-			$retval['msg'] = '';
-			$vars['page'] = $vars['refer'];
-			$vars['cmd'] = 'read';
-			$retval['body'] = convert_html(get_source($vars['refer']));
-			$link = '';
-		}
-
 		//XSS脆弱性問題 - 外部から来た変数をエスケープ
 		$width = empty($vars['width']) ? PAINT_DEFAULT_WIDTH : $vars['width'];
 		$height = empty($vars['height']) ? PAINT_DEFAULT_HEIGHT : $vars['height'];
 		$f_w = (is_numeric($width) and $width > 0) ? $width : PAINT_DEFAULT_WIDTH;
 		$f_h = (is_numeric($height) and $height > 0) ? $height : PAINT_DEFAULT_HEIGHT;
-		$f_refer = array_key_exists('refer',$vars) ? encode($vars['refer']) : ''; // BBSPainter.jarがshift-jisに変換するのを回避
+		$f_refer = array_key_exists('refer',$vars) ? encode($vars['refer']) : '';
 		$f_digest = array_key_exists('digest',$vars) ? htmlsc($vars['digest']) : '';
 		$f_no = (array_key_exists('paint_no',$vars) and is_numeric($vars['paint_no'])) ?
 			$vars['paint_no'] + 0 : 0;
@@ -136,21 +118,6 @@ function plugin_paint_action()
  <div>
  $link
  $message
- <applet codebase="." archive="BBSPainter.jar" code="Main.class" width="$w" height="$h">
- <param name="size" value="$f_w,$f_h" />
- <param name="action" value="$script" />
- <param name="image" value="attach_file" />
- <param name="form1" value="filename={$_paint_messages['field_filename']}=!" />
- <param name="form2" value="yourname={$_paint_messages['field_name']}" />
- <param name="comment" value="msg={$_paint_messages['field_comment']}" />
- <param name="param1" value="plugin=paint" />
- <param name="param2" value="refer=$f_refer" />
- <param name="param3" value="digest=$f_digest" />
- <param name="param4" value="max_file_size=1000000" />
- <param name="param5" value="paint_no=$f_no" />
- <param name="enctype" value="multipart/form-data" />
- <param name="return.URL" value="$page_uri" />
- </applet>
  </div>
 EOD;
 	}
